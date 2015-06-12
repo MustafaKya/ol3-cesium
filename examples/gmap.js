@@ -497,15 +497,7 @@ var clusters = new ol.layer.Vector({
     var style = styleCache[size];
     if (!style) {
       style = [new ol.style.Style({
-        image: new ol.style.Circle({
-          radius: 10,
-          stroke: new ol.style.Stroke({
-            color: '#fff'
-          }),
-          fill: new ol.style.Fill({
-            color: '#3399CC'
-          })
-        }),
+        image: iconStyle.getImage(),
         text: new ol.style.Text({
           text: size.toString(),
           fill: new ol.style.Fill({
