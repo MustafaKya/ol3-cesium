@@ -672,14 +672,15 @@ goog.require('olcs.core.OlLayerPrimitive');
 
   /**
    * Convert an OpenLayers circle geometry to Cesium.
+   * @param {!ol.Feature} feature
    * @param {!ol.geom.Circle} olGeometry Ol3 circle geometry.
    * @param {!ol.proj.ProjectionLike} projection
    * @param {!ol.style.Style} olStyle
    * @return {!Cesium.PrimitiveCollection} primitives
    * @api
    */
-  olcs.core.olCircleGeometryToCesium = function(olGeometry, projection,
-      olStyle) {
+  olcs.core.olCircleGeometryToCesium = function(feature, olGeometry,
+      projection, olStyle) {
     olGeometry = olGeometryCloneTo4326(olGeometry, projection);
     goog.asserts.assert(olGeometry.getType() == 'Circle');
 
@@ -719,12 +720,13 @@ goog.require('olcs.core.OlLayerPrimitive');
 
 
   /**
+   * @param {!ol.Feature} feature
    * @param {!ol.geom.LineString} olGeometry
    * @param {!ol.proj.Projection|string} projection
    * @param {!ol.style.Style} olStyle
    * @return {!Cesium.BillboardCollection}
    */
-  olcs.core.experimentalLineToCesiumBillboards = function(olGeometry,
+  olcs.core.experimentalLineToCesiumBillboards = function(feature, olGeometry,
       projection, olStyle) {
     olGeometry = olGeometryCloneTo4326(olGeometry, projection);
     goog.asserts.assert(olGeometry.getType() == 'LineString');
@@ -757,14 +759,15 @@ goog.require('olcs.core.OlLayerPrimitive');
 
   /**
    * Convert an OpenLayers line string geometry to Cesium.
+   * @param {!ol.Feature} feature
    * @param {!ol.geom.LineString} olGeometry Ol3 line string geometry.
    * @param {!ol.proj.ProjectionLike} projection
    * @param {!ol.style.Style} olStyle
    * @return {!Cesium.PrimitiveCollection} primitives
    * @api
    */
-  olcs.core.olLineStringGeometryToCesium = function(olGeometry, projection,
-      olStyle) {
+  olcs.core.olLineStringGeometryToCesium = function(feature, olGeometry,
+      projection, olStyle) {
 
     olGeometry = olGeometryCloneTo4326(olGeometry, projection);
     goog.asserts.assert(olGeometry.getType() == 'LineString');
@@ -798,14 +801,15 @@ goog.require('olcs.core.OlLayerPrimitive');
 
   /**
    * Convert an OpenLayers polygon geometry to Cesium.
+   * @param {!ol.Feature} feature
    * @param {!ol.geom.Polygon} olGeometry Ol3 polygon geometry.
    * @param {!ol.proj.ProjectionLike} projection
    * @param {!ol.style.Style} olStyle
    * @return {!Cesium.PrimitiveCollection} primitives
    * @api
    */
-  olcs.core.olPolygonGeometryToCesium = function(olGeometry, projection,
-      olStyle) {
+  olcs.core.olPolygonGeometryToCesium = function(feature, olGeometry,
+      projection, olStyle) {
 
     olGeometry = olGeometryCloneTo4326(olGeometry, projection);
     goog.asserts.assert(olGeometry.getType() == 'Polygon');
@@ -852,6 +856,7 @@ goog.require('olcs.core.OlLayerPrimitive');
 
   /**
    * Convert a point geometry to a Cesium BillboardCollection.
+   * @param {!ol.Feature} feature
    * @param {!ol.geom.Point} geometry
    * @param {!ol.proj.ProjectionLike} projection
    * @param {!ol.style.Style} style
@@ -861,8 +866,8 @@ goog.require('olcs.core.OlLayerPrimitive');
    * @return {Cesium.Primitive} primitives
    * @api
    */
-  olcs.core.olPointGeometryToCesium = function(geometry, projection, style,
-      billboards, opt_newBillboardCallback) {
+  olcs.core.olPointGeometryToCesium = function(feature, geometry, projection,
+      style, billboards, opt_newBillboardCallback) {
     goog.asserts.assert(geometry.getType() == 'Point');
     geometry = olGeometryCloneTo4326(geometry, projection);
 
@@ -919,6 +924,7 @@ goog.require('olcs.core.OlLayerPrimitive');
 
   /**
    * Convert an OpenLayers multi-something geometry to Cesium.
+   * @param {!ol.Feature} feature
    * @param {!ol.geom.Geometry} geometry Ol3 geometry.
    * @param {!ol.proj.ProjectionLike} projection
    * @param {!ol.style.Style} olStyle
@@ -927,7 +933,7 @@ goog.require('olcs.core.OlLayerPrimitive');
    * @return {!Cesium.Primitive} primitives
    * @api
    */
-  olcs.core.olMultiGeometryToCesium = function(geometry, projection,
+  olcs.core.olMultiGeometryToCesium = function(feature, geometry, projection,
       olStyle, opt_newBillboardCallback) {
     // Do not reproject to 4326 now because it will be done later.
 
@@ -936,7 +942,7 @@ goog.require('olcs.core.OlLayerPrimitive');
     var accumulate = function(geometries, functor) {
       var primitives = new Cesium.PrimitiveCollection();
       goog.array.forEach(geometries, function(geometry) {
-        primitives.add(functor(geometry, projection, olStyle));
+        primitives.add(functor(feature, geometry, projection, olStyle));
       });
       return primitives;
     };
@@ -952,7 +958,7 @@ goog.require('olcs.core.OlLayerPrimitive');
           var primitives = new Cesium.PrimitiveCollection();
           goog.array.forEach(subgeos, function(geometry) {
             goog.asserts.assert(geometry);
-            var result = fn(geometry, projection, olStyle, billboards,
+            var result = fn(feature, geometry, projection, olStyle, billboards,
                 opt_newBillboardCallback);
             if (result) {
               primitives.add(result);
@@ -962,7 +968,7 @@ goog.require('olcs.core.OlLayerPrimitive');
         } else {
           goog.array.forEach(subgeos, function(geometry) {
             goog.asserts.assert(!goog.isNull(geometry));
-            fn(geometry, projection, olStyle, billboards,
+            fn(feature, geometry, projection, olStyle, billboards,
                 opt_newBillboardCallback);
           });
           return billboards;
@@ -1235,8 +1241,8 @@ goog.require('olcs.core.OlLayerPrimitive');
         return id(primitives);
       case 'Point':
         geom = /** @type {!ol.geom.Point} */ (geom);
-        var result = olcs.core.olPointGeometryToCesium(geom, proj, style, bbs,
-            newBillboardAddedCallback);
+        var result = olcs.core.olPointGeometryToCesium(feature, geom, proj,
+            style, bbs, newBillboardAddedCallback);
         if (!result) {
           // no wrapping primitive
           return null;
@@ -1245,25 +1251,29 @@ goog.require('olcs.core.OlLayerPrimitive');
         }
       case 'Circle':
         geom = /** @type {!ol.geom.Circle} */ (geom);
-        return id(olcs.core.olCircleGeometryToCesium(geom, proj, style));
+        return id(olcs.core.olCircleGeometryToCesium(feature, geom, proj,
+            style));
       case 'LineString':
         geom = /** @type {!ol.geom.LineString} */ (geom);
         if (style.getImage()) {
           var both = new Cesium.PrimitiveCollection();
-          both.add(olcs.core.experimentalLineToCesiumBillboards(geom, proj,
+          both.add(olcs.core.experimentalLineToCesiumBillboards(feature, geom,
+              proj, style));
+          both.add(olcs.core.olLineStringGeometryToCesium(feature, geom, proj,
               style));
-          both.add(olcs.core.olLineStringGeometryToCesium(geom, proj, style));
           return id(both);
         } else {
-          return id(olcs.core.olLineStringGeometryToCesium(geom, proj, style));
+          return id(olcs.core.olLineStringGeometryToCesium(feature, geom, proj,
+              style));
         }
       case 'Polygon':
         geom = /** @type {!ol.geom.Polygon} */ (geom);
-        return id(olcs.core.olPolygonGeometryToCesium(geom, proj, style));
+        return id(olcs.core.olPolygonGeometryToCesium(feature, geom, proj,
+            style));
       case 'MultiPoint':
       case 'MultiLineString':
       case 'MultiPolygon':
-        return id(olcs.core.olMultiGeometryToCesium(geom, proj, style,
+        return id(olcs.core.olMultiGeometryToCesium(feature, geom, proj, style,
             newBillboardAddedCallback));
       case 'LinearRing':
         throw new Error('LinearRing should only be part of polygon.');
@@ -1286,7 +1296,11 @@ goog.require('olcs.core.OlLayerPrimitive');
   olcs.core.olVectorLayerToCesium = function(olLayer, olView,
       featurePrimitiveMap) {
     var vectorLayer = olLayer;
-    var features = vectorLayer.getSource().getFeatures();
+    var source = vectorLayer.getSource();
+    if (source instanceof ol.source.StaticCluster) {
+      source = source.getSource();
+    }
+    var features = source.getFeatures();
     var proj = olView.getProjection();
     var resolution = olView.getResolution();
 
