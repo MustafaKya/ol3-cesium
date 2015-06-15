@@ -891,11 +891,28 @@ goog.require('olcs.core.OlLayerPrimitive');
       if (goog.isDef(opacity)) {
         color = new Cesium.Color(1.0, 1.0, 1.0, opacity);
       }
+
+      // Nonsensical computation of minDistance by scaling resolution
+      var clusterResolutionsById = window['clusterResolutionsById'];
+      var visibilityDistances;
+      if (goog.isDef(clusterResolutionsById)) {
+        var minResolution = clusterResolutionsById[feature.getId()];
+        if (goog.isDef(minResolution) && minResolution > 0) {
+          // When distance from camera to geometry is:
+          visibilityDistances = new Cesium.NearFarScalar(
+              0, // disable position hidding
+              0, // unused
+              minResolution * 305, // hide when distance is greater than this
+              0); // unused
+        }
+      }
+
       var bb = billboards.add({
         // always update Cesium externs before adding a property
         image: image,
         color: color,
         verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+        pixelOffsetScaleByDistance: visibilityDistances,
         position: position
       });
       if (opt_newBillboardCallback) {

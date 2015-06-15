@@ -448,7 +448,7 @@ var vectorSource2 = new ol.source.Vector({
 var vectorLayer2 = new ol.layer.Vector({
   source: vectorSource2
 });
-map.getLayers().push(vectorLayer2);
+//map.getLayers().push(vectorLayer2);
 
 
 function viewOlExtent() {
@@ -465,6 +465,7 @@ camera.constrainedAxisAngle = 3 * Math.PI / 8;
 
 map.on('click', function(evt) {
   var pixel = new Cesium.Cartesian2(evt.pixel[0], evt.pixel[1]);
+  /*
   var target = olcs.core.pickOnTerrainOrEllipsoid(scene, pixel);
   if (!target) return;
   var csExtent = olcs.core.computeBoundingBoxAtTarget(scene, target, 20);
@@ -476,11 +477,43 @@ map.on('click', function(evt) {
   });
 
   console.log('Boxes:', target, 'cs', csExtent.toString(), 'ol', olExtent.toString());
+*/
+  //var cesiumObject = scene.pick(position);
+
+  function finfo(f) {
+    console.log(
+      'Picked OL3',
+      f.getId(),
+      f.getProperties(),
+      window['clusterResolutionsById'][f.getId()]);
+  }
+  if (ol3d.getEnabled()) {
+    var cesiumObjectArray = scene.drillPick(pixel);
+    for (var csi = 0; csi < cesiumObjectArray.length; ++csi) {
+      var cesiumObject = cesiumObjectArray[csi];
+
+      var csFeature = cesiumObject.primitive.olFeature;
+      if (typeof csFeature === 'undefined') {
+        console.log('Picked Cesium primitive without ol feature',
+            cesiumObject.primitive, csFeature);
+        continue;
+      } else {
+        console.log('Picked Cesium: ', cesiumObject.primitive);
+        finfo(csFeature.getId());
+      }
+    }
+  } else {
+    map.forEachFeatureAtPixel(evt.pixel, function(feature, layer) {
+        finfo(feature);
+    });
+  }
 });
 
 
-var busSource = new ol.source.GeoJSON({
-    url: '../ol3/examples/data/dump_geojson_bus_fragments.json',
+var dprefix = location.search.replace('?', '');
+var busSource = new ol.source.Vector({
+    format: new ol.format.GeoJSON(),
+    url: '../ol3/examples/data/' + dprefix + 'dump_geojson_bus_fragments.json',
     projection: 'EPSG:21781'
 });
 
